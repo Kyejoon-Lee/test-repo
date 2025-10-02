@@ -1,0 +1,46 @@
+{{- range $key, $value := .Values.batch.job }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    {{- include "labels" (dict "context" $ "component" $value.name "name" $value.name) | nindent 4 }}
+    {{- with $value.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  name: {{ template "fullname" $ }}-{{ $key }}
+  namespace: {{ include  "namespace" $ }}
+spec:
+  {{- with $value.parallelism }}
+  parallelism: {{ $value.parallelism }}
+  {{- end }}
+  {{- with $value.completions }}
+  completions: {{ $value.completions }}
+  {{- end }}
+  {{- with $value.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ $value.activeDeadlineSeconds }}
+  {{- end }}
+  {{- with $value.backoffLimit }}
+  backoffLimit: {{ $value.backoffLimit }}
+  {{- end }}
+  {{- with $value.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ $value.ttlSecondsAfterFinished }}
+  {{- end }}
+  {{- with $value.completionMode }}
+  completionMode: {{ $value.completionMode }}
+  {{- end }}
+  {{- with $value.backoffLimitPerIndex }}
+  backoffLimitPerIndex: {{ $value.backoffLimitPerIndex }}
+  {{- end }}
+  {{- with $value.maxFailedIndexes }}
+  maxFailedIndexes: {{ $value.maxFailedIndexes }}
+  {{- end }}
+  template:
+    {{- tpl (toYaml $value.jobTemplate) $ | nindent 4 }}
+{{- end }}

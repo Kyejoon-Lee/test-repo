@@ -1,0 +1,30 @@
+{{- if .Values.istio.create -}}
+kind: DestinationRule
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- with .Values.istio.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  name: {{ template "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+spec:
+  {{- with .Values.istio.destinationRule.host }}
+  {{- $host := tpl . $ }}
+  {{- if $host }}
+  host: {{ $host }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.istio.destinationRule.trafficPolicy }}
+  trafficPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.istio.destinationRule.subsets }}
+  subsets:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+{{- end -}}

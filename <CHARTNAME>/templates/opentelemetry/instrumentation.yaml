@@ -1,0 +1,36 @@
+{{- if and .Values.openTelemetry.enabled .Values.openTelemetry.instrumentation }}
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: {{ include "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  {{- with .Values.openTelemetry.instrumentation.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- with .Values.openTelemetry.instrumentation.exporter }}
+  exporter:
+    {{- tpl (toYaml .) $  | nindent 4 }}
+  {{- end }}
+  {{- with .Values.openTelemetry.instrumentation.propagators }}
+  propagators:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.openTelemetry.instrumentation.sampler }}
+  sampler:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.openTelemetry.instrumentation.go }}
+  go:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+  {{- with .Values.openTelemetry.instrumentation.python }}
+  python:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,27 @@
+{{- if .Values.service }}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.service.annotations }}
+  annotations:
+  {{- range $key, $value := .Values.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+{{- with .Values.service.labels }}
+{{- toYaml . | nindent 4 }}
+{{- end }}
+  name: {{ template "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+spec:
+  type: ClusterIP
+  {{- include "dualStack" . | indent 2 }}
+  {{- with .Values.service.ports }}
+  ports:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- include "selectorLabels" (dict "context" . "name" .Values.name) | nindent 4 }}
+{{- end }}

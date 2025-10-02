@@ -1,0 +1,76 @@
+{{- range $key, $value := .Values.volumes.pv -}}
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "labels" (dict "context" $ "component" $.Values.name "name" $.Values.name) | nindent 4 }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+  {{- end }}
+  name: {{ template "fullname" $ }}-{{ $key }}
+spec:
+  {{- if $value.accessModes }}
+  accessModes:
+    {{- toYaml $value.accessModes | nindent 4 }}
+  {{- else }}
+  accessModes:
+    - ReadWriteMany
+  {{- end }}
+  {{- if $value.storageClassName}}
+  storageClassName: {{ $value.storageClassName }}
+  {{- else }}
+  storageClassName: ""
+  {{- end }}
+  {{- with $value.mountOptions }}
+  mountOptions:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.volumeMode }}
+  volumeMode: {{ . | default "Filesystem" }}
+  {{- end }}
+  capacity:
+    storage: {{ $value.size | default "10Gi" }}
+  {{- if and (not $value.csi) ($.Values.clusterTier) }}
+  {{- include "volumes.pv.csi" (dict "context" $value "clusterTier" $.Values.clusterTier) | nindent 2 }}
+  {{- else }}
+  csi:
+    {{- toYaml $value.csi | nindent 4 }}
+  {{ end }}
+{{- if $value.autoCreatePVC }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "labels" (dict "context" $ "component" $.Values.name "name" $.Values.name) | nindent 4 }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+  {{- end }}
+  name: {{ template "fullname" $ }}-{{ $key }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{- if $value.accessModes }}
+  accessModes:
+      {{- toYaml $value.accessModes | nindent 4 }}
+  {{- else }}
+  accessModes:
+    - ReadWriteMany
+  {{- end }}
+  {{- if $value.storageClassName}}
+  storageClassName: {{ $value.storageClassName }}
+  {{- else }}
+  storageClassName: ""
+  {{- end }}
+  volumeName: {{ template "fullname" $ }}-{{ $key }}
+  resources:
+    requests:
+      storage: {{ $value.size | default "10Gi" }}
+{{ end }}
+{{ end }}

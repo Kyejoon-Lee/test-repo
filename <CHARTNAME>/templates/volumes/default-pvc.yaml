@@ -1,0 +1,35 @@
+{{- range $key, $value := .Values.volumes.pvc -}}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "labels" (dict "context" $ "component" $.Values.name "name" $.Values.name) | nindent 4 }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+  {{- end }}
+  name: {{ template "fullname" $ }}-{{ $key }}
+  namespace: {{ include  "namespace" $ }}
+spec:
+  {{- if $value.accessModes }}
+  accessModes:
+      {{- toYaml $value.accessModes | nindent 4 }}
+  {{- else }}
+  accessModes:
+    - ReadWriteMany
+  {{- end }}
+  {{- if $value.storageClassName}}
+  storageClassName: {{ $value.storageClassName }}
+  {{- else }}
+  storageClassName: ""
+  {{- end }}
+  {{- with $value.volumeName }}
+  volumeName: {{ tpl (toYaml .) $ }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $value.size }}
+{{ end }}

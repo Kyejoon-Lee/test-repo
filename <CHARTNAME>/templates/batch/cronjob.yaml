@@ -1,0 +1,35 @@
+{{- range $key, $value := .Values.batch.cronjob }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    {{- include "labels" (dict "context" $ "component" $value.name "name" $value.name) | nindent 4 }}
+    {{- with $value.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  name: {{ template "fullname" $ }}-{{ $key }}
+  namespace: {{ include  "namespace" $ }}
+spec:
+  schedule: {{ $value.schedule | quote }}
+  {{- with $value.timeZone }}
+  timeZone: {{ . | quote }}
+  {{- end }}
+  {{- with $value.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  {{- with $value.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- with $value.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $value.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  jobTemplate:
+    {{- tpl (toYaml $value.jobTemplate) $ | nindent 4 }}
+{{- end }}

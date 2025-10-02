@@ -1,0 +1,515 @@
+nameOverride: ""
+fullnameOverride: ""
+
+name: ""
+
+clusterTier: "" #-- onco-dev
+
+additionalLabels: {}
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+#  gke-gcsfuse/volumes: "true"
+#  instrumentation.opentelemetry.io/inject-java: "{{ template  `namespace` . }}/{{ template `fullname` . }}"
+
+podLabels: {}
+
+createAggregateRoles: false
+createClusterRoles: false
+clusterRoleRules:
+  enabled: false
+  rules: []
+
+replicas: 1
+
+runtimeClassName: ""
+
+revisionHistoryLimit: 10
+
+pdb:
+  enabled: false
+  labels: {}
+  annotations: {}
+  minAvailable: ""
+  maxUnavailable: ""
+
+image:
+  repository: nginx
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: "{{ template `fullname` . }}-dockerconfigjson"
+
+command: []
+
+args: []
+
+resources:
+  limits:
+    memory: 64Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+env: []
+
+envFrom:
+  - configMapRef:
+      name: "{{ template `fullname` . }}-default"
+  - secretRef:
+      name: "{{ template `fullname` . }}-default"
+
+lifecycle: {}
+
+initContainers: []
+
+extraContainers: []
+#  - name: cmp-my-plugin
+#    command:
+#      - "/var/run/argocd/argocd-cmp-server"
+#    image: busybox:latest
+#    securityContext:
+#      runAsNonRoot: true
+#      runAsUser: 999
+#    volumeMounts:
+#      - mountPath: /var/run/argocd
+#        name: var-files
+
+securityContext: {}
+#  runAsUser: 1000
+#  runAsGroup: 1000
+#  fsGroup: 1000
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+#  readOnlyRootFilesystem: false
+#  allowPrivilegeEscalation: false
+#  seccompProfile:
+#    type: RuntimeDefault
+#  capabilities:
+#    drop:
+#    - ALL
+
+readinessProbe:
+  enabled: true
+  failureThreshold: 30
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+livenessProbe:
+  enabled: true
+  failureThreshold: 30
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+terminationGracePeriodSeconds: 30
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    type: none
+  nodeAffinity:
+    type: none
+#  # -- Default pod anti-affinity rules. Either: `none`, `soft` or `hard`
+#  podAntiAffinity:
+#    type: none
+#    matchExpressions: []
+#        # - key: kubernetes.io/hostname
+#        #   operator: In
+#        #   values:
+#        #    - antarctica-east1
+#        #    - antarctica-west1
+#  # Node affinity rules
+#    # Node affinity rules
+#    nodeAffinity:
+#      # -- Default node affinity rules. Either: `none`, `soft` or `hard`
+#      type: hard
+#      # -- Default match expressions for node affinity
+#      matchExpressions: []
+#        # - key: kubernetes.io/hostname
+#        #   operator: In
+#        #   values:
+#        #    - antarctica-east1
+#        #    - antarctica-west1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+
+deploymentStrategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+#   maxSurge: 25%
+#   maxUnavailable: 25%
+
+priorityClassName: ""
+
+containerPorts:
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+
+service:
+  annotations: {}
+  labels: {}
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: http
+
+dualStack: {}
+
+hostNetwork: false
+
+dnsConfig: {}
+dnsPolicy: "ClusterFirst"
+
+automountServiceAccountToken: true
+
+serviceAccount:
+  create: true
+  name: ""
+  labels: {}
+  automountServiceAccountToken: true
+  annotations: {}
+#    iam.gke.io/gcp-service-account: ginger@oncology-dev-447022.iam.gserviceaccount.com
+
+################################################################################
+# Configs
+################################################################################
+configs:
+  cm:
+    create: true
+    annotations: {}
+    data:
+      KEY1: "VALUE1"
+
+  secret:
+    create: false
+    labels: {}
+    annotations: {}
+    refreshInterval: "60s"
+    secretStoreRef:
+      name: gcp-in-cluster
+    data: []
+
+  extraSecrets:
+    - name: dockerconfigjson
+      refreshInterval: "60s"
+      secretStoreRef:
+        name: gcp-in-cluster
+      targetTemplate:
+        type: kubernetes.io/dockerconfigjson
+        data:
+          .dockerconfigjson: "{{ .dockerconfigjson | toString }}"
+      data:
+        - secretKey: dockerconfigjson
+          remoteRef:
+            key: gke-harbor-docker-config-json
+#    - name: keda-rabbitmq-auth
+#      refreshInterval: "60s"
+#      secretStoreRef:
+#        name: gcp-in-cluster
+#      data:
+#        - secretKey: host
+#          remoteRef:
+#            key: gke-keda-rabbitmq-auth
+
+################################################################################
+# Volumes
+################################################################################
+#-- NOTE
+#-- 1. MUST specify .podVolumeMounts[] and .podVolumes[]
+#-- 2. key is the name of the pv and pvc
+volumes:
+  pv: {}
+#    example-pv:
+#      path: example
+#      size: 10Gi
+#      autoCreatePVC: true
+#    example-gcs:
+#      annotations: {}
+#      accessModes:
+#        - ReadWriteMany
+#      storageClassName: one-ai-dev
+#      size: 100Gi
+#      mountOptions:
+#        - implicit-dirs
+#        - file-cache:enable-parallel-downloads:true
+#        - uid=1000
+#        - gid=1000
+#        - file-mode=0777
+#        - dir-mode=0777
+#        - only-dir=ginger
+#      csi:
+#        driver: gcsfuse.csi.storage.gke.io
+#        volumeHandle: one-ai-dev
+#        volumeAttributes:
+#          skipCSIBucketAccessCheck: "true"
+#    example-filestore:
+#      type: filestore
+#      filestoreInstance: lunit-common-ssd
+#      path: one-ai-dev
+#      size: 1000Gi
+#      autoCreatePVC: true
+
+  pvc: {}
+#    example-gcs:
+#      annotations: {}
+#      accessModes:
+#        - ReadWriteMany
+#      storageClassName: one-ai-dev
+#      #-- specify pv name
+#      volumeName: "{{ template `fullname` . }}-example-gcs"
+#      size: 100Gi
+
+podVolumeMounts:
+#  - name: example-gcs
+#    mountPath: /gcs-bucket
+
+#-- Refer to volumes name
+podVolumes: []
+#  - name: example-gcs
+#    persistentVolumeClaim:
+#      claimName: "{{ template `fullname` . }}-example-gcs"
+#  - name: example-filestore
+#    persistentVolumeClaim:
+#      claimName: "{{ template `fullname` . }}-example-filestore"
+#  - name: argocd-cmp-cm
+#    configMap:
+#      name: argocd-cmp-cm
+
+################################################################################
+# Istio
+################################################################################
+istio:
+  create: true
+  annotations: {}
+
+  sidecar:
+    outboundTrafficPolicy:
+      mode: ALLOW_ANY
+    egress:
+      - hosts:
+          - "{{ template `namespace` . }}/*"
+
+  destinationRule:
+    host: "{{ template `fullname` . }}"
+    trafficPolicy: {}
+    subsets:
+      - name: stable
+
+  virtualService:
+    gateways: []
+    # - istio-system/default
+    hosts:
+      - "{{ template `fullname` . }}"
+    http:
+      - route:
+          - destination:
+              host: "{{ template `fullname` . }}"
+              subset: stable
+            weight: 100
+
+################################################################################
+# AutoScaling
+################################################################################
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 50
+  behavior: {}
+    # scaleDown:
+    #  stabilizationWindowSeconds: 300
+    #  policies:
+    #   - type: Pods
+    #     value: 1
+    #     periodSeconds: 180
+    # scaleUp:
+  #   stabilizationWindowSeconds: 300
+  #   policies:
+  #   - type: Pods
+  #     value: 2
+  #     periodSeconds: 60
+  metrics: []
+
+kedaAutoscaling:
+  enabled: false
+  annotations: {}
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  pollingInterval: 30
+#  cooldownPeriod: 300
+#  idleReplicaCount: 0
+#  initialCooldownPeriod: 0
+#  scaleTargetRef:
+#    apiVersion: apps/v1
+#    kind: Deployment
+#    envSourceContainerName: ""
+#  fallback:
+#    failureThreshold: 3
+#    replicas: 1
+#  advanced:
+#    restoreToOriginalReplicaCount: false
+#    horizontalPodAutoscalerConfig:
+#      behavior:
+#        scaleDown:
+#          stabilizationWindowSeconds: 300
+#          policies:
+#            - type: Percent
+#              value: 100
+#              periodSeconds: 75
+#  triggers:
+#    - type: rabbitmq
+#      metadata:
+#        protocol: auto
+#        mode: QueueLength
+#        value: "100.50"
+#        activationValue: "10.5"
+#        queueName: testqueue
+#        vhostName: /
+#  triggerAuthentication:
+#    secretTargetRef:
+#      - parameter: host
+#        name: "{{ template `fullname` . }}-keda-rabbitmq-auth" #-- follow external secret name
+#        key: host
+
+################################################################################
+# OpenTelemetry
+################################################################################
+openTelemetry:
+  enabled: false
+
+  instrumentation:
+    annotations: {}
+    exporter:
+      endpoint: "http://{{ template `fullname` . }}-collector:4317"
+    propagators:
+      - tracecontext
+      - baggage
+    sampler:
+      type: parentbased_traceidratio
+      argument: "0.25"
+    python: {}
+    go: {}
+  #      env:
+  #        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+  #          value: "http://{{ template `fullname` . }}-collector:4318"
+
+  collector:
+    labels: {}
+    annotations: {}
+    mode: deployment
+    replicas: 1
+    resources:
+      limits:
+        memory: 1Gi
+      requests:
+        cpu: 10m
+        memory: 128Mi
+    config:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+      processors:
+        probabilistic_sampler:
+          sampling_percentage: 20
+        filter:
+          error_mode: ignore
+          traces:
+            span:
+              - 'attributes["http.target"] == "/health"'
+        memory_limiter:
+          check_interval: 1s
+          limit_percentage: 75
+          spike_limit_percentage: 15
+        batch:
+          send_batch_size: 10000
+          send_batch_max_size: 20000
+          timeout: 10s
+      exporters:
+        otlphttp/tempo:
+          endpoint: "http://tempo-mgmt-distributor.observability-system:4318"
+          headers:
+            x-scope-orgid: "{{ .Values.clusterTier }}"
+      service:
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [memory_limiter, filter, probabilistic_sampler, batch]
+            exporters: [otlphttp/tempo]
+
+################################################################################
+# Batch
+################################################################################
+batch:
+  job: {}
+  #    job-test:
+  #      labels: {}
+  #      annotations: {}
+  #      completions: 1
+  #      parallelism: 1
+  #      completionMode: Indexed
+  #      backoffLimitPerIndex: 1
+  #      maxFailedIndexes: 3
+  #      backoffLimit: 3
+  #      activeDeadlineSeconds: 100
+  #      ttlSecondsAfterFinished: 100
+  #      jobTemplate:
+  #        metadata:
+  #          labels:
+  #            sidecar.istio.io/inject: "false"
+  #        spec:
+  #          containers:
+  #            - name: hello
+  #              image: busybox:1.28
+  #              imagePullPolicy: IfNotPresent
+  #              command:
+  #                - /bin/sh
+  #                - -c
+  #                - date; echo Hello from the Kubernetes cluster
+  #          restartPolicy: OnFailure
+  cronjob: {}
+#    job-delete:
+#      schedule: "* * * * *"
+#      timeZone: "UTC"
+#      startingDeadlineSeconds: 180
+#      concurrencyPolicy: Allow
+#      successfulJobsHistoryLimit: 3
+#      failedJobsHistoryLimit: 0
+#      jobTemplate:
+#        spec:
+#          template:
+#            metadata:
+#              labels:
+#                sidecar.istio.io/inject: "false"
+#            spec:
+#              containers:
+#                - name: hello
+#                  image: busybox:1.28
+#                  imagePullPolicy: IfNotPresent
+#                  command:
+#                    - /bin/sh
+#                    - -c
+#                    - date; echo Hello from the Kubernetes cluster
+#              restartPolicy: OnFailure

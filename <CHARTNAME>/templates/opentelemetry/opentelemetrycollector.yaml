@@ -1,0 +1,44 @@
+{{- if and .Values.openTelemetry.enabled .Values.openTelemetry.collector }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ include "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+    {{- with .Values.openTelemetry.collector.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.openTelemetry.collector.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  mode: {{ .Values.openTelemetry.collector.mode | default "deployment" }}
+  replicas: {{ .Values.openTelemetry.collector.replicas | default 1 }}
+  {{- with .Values.openTelemetry.collector.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.openTelemetry.collector.config }}
+  config:
+    {{- with .receivers }}
+    receivers:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .processors }}
+    processors:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .exporters }}
+    exporters:
+      {{- tpl (toYaml .) $ | nindent 6 }}
+    {{- end }}
+    {{- with .service }}
+    service:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

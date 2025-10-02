@@ -1,0 +1,25 @@
+{{- if .Values.istio.create -}}
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  {{- with .Values.istio.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  name: {{ template "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+spec:
+  workloadSelector:
+    labels:
+      {{- include "selectorLabels" (dict "context" . "name" .Values.name) | nindent 6 }}
+  {{- with .Values.istio.sidecar }}
+  egress:
+    {{- tpl (toYaml .egress) $ | nindent 4 }}
+  {{- end }}
+  outboundTrafficPolicy:
+    mode: {{ .Values.istio.sidecar.outboundTrafficPolicy.mode | default "REGISTRY_ONLY" }}
+{{- end -}}

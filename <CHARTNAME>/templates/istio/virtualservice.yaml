@@ -1,0 +1,30 @@
+{{- if .Values.istio.create -}}
+kind: VirtualService
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- with .Values.istio.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  name: {{ template "fullname" . }}
+  namespace: {{ include  "namespace" . }}
+spec:
+  {{- if not (empty .Values.istio.virtualService.hosts) }}
+  {{- with .Values.istio.virtualService.gateways }}
+  gateways:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.istio.virtualService.hosts }}
+  hosts:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+  {{- with .Values.istio.virtualService.http }}
+  http:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+{{- end -}}
