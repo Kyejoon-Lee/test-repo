@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/Kyejoon-Lee/test-repo.git
     path: exam
-    targetRevision: 1.0.0-dev
+    targetRevision: main
     helm:
       releaseName: nginx-test
   syncPolicy:
