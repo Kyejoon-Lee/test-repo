@@ -12,7 +12,7 @@ spec:
     name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
   source:
     repoURL: https://github.com/Kyejoon-Lee/test-repo.git
-    path: nginx-helm
+    path: exam
     targetRevision: main
     helm:
       releaseName: nginx-test
