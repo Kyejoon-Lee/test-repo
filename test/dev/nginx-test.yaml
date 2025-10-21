@@ -4,14 +4,14 @@ metadata:
   name: nginx-test
   namespace: argo-cd
   finalizers:
-    - resoureces-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   destination:
     name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
     namespace: nginx-test
   source:
-  - chart: nginx-helm
+    chart: nginx-helm
     repoURL: https://github.com/Kyejoon-Lee/test-repo
     targetRevision: dev
     helm:
