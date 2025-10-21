@@ -8,12 +8,12 @@ metadata:
 spec:
   project: default
   destination:
-    name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
     namespace: nginx-test
+    name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
   source:
-    chart: nginx-helm
-    repoURL: https://github.com/Kyejoon-Lee/test-repo
-    targetRevision: dev
+    chart: exam
+    repoURL: https://github.com/Kyejoon-Lee/test-repo.git
+    targetRevision: 1.0.0-dev
     helm:
       releaseName: nginx-test
   syncPolicy:
