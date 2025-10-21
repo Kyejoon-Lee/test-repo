@@ -1,33 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nginx-test
+  name: test-app
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default
   destination:
-    namespace: nginx-test
-    name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
+    namespace: argocd
+    name: in-cluster
+  project: default
   source:
+    path: app-of-apps/test-app
     repoURL: https://github.com/Kyejoon-Lee/test-repo.git
-    path: exam
     targetRevision: main
-    helm:
-      releaseName: nginx-test
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     retry:
-      limit: 10
       backoff:
         duration: 10s
         factor: 2
         maxDuration: 10m
+      limit: 10
     syncOptions:
-    - ServerSideApply=false
-    - CreateNamespace=true
-
-
+      - ServerSideApply=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground

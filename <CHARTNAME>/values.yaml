@@ -464,7 +464,7 @@ openTelemetry:
 ################################################################################
 batch:
   job: {}
-  #    job-test:
+  #    job-test-app:
   #      labels: {}
   #      annotations: {}
   #      completions: 1
