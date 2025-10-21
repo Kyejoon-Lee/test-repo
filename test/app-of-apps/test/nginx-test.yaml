@@ -11,8 +11,8 @@ spec:
     namespace: nginx-test
     name: gke_grpc-exam-475707_asia-northeast3_grpc-demo
   source:
-  - chart: exam
     repoURL: https://github.com/Kyejoon-Lee/test-repo.git
+    path: exam
     targetRevision: 1.0.0-dev
     helm:
       releaseName: nginx-test
