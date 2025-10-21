@@ -11,7 +11,7 @@ spec:
     name: in-cluster
   project: default
   source:
-    path: app-of-apps/.bootstrap
+    path: app-of-apps/test
     repoURL: https://github.com/Kyejoon-Lee/test-repo.git
     targetRevision: main
   syncPolicy:
